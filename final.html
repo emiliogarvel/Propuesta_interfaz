@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganadería Pro - Sistema de Gestión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">-->
+    <link href="estilos.css" rel="stylesheet">
+
+
+</head>
+<body class="text-slate-800">
+
+    <!-- Navigation -->
+    <nav class="bg-green-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-cow text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight">GanaderíaPro</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="flex space-x-4">
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium bg-green-900">Dashboard</a>
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700">Animales</a>
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700">Salud</a>
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700">Producción</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button class="bg-green-600 p-2 rounded-full hover:bg-green-500 transition">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="ml-3 relative group">
+                        <img class="h-8 w-8 rounded-full border-2 border-green-400" src="https://ui-avatars.com/api/?name=Admin+Ganadero&background=random" alt="User">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Dashboard Header -->
+        <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Panel de Control</h1>
+                <p class="text-slate-500">Resumen general del estado de la finca "La Esperanza"</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="showToast('Sincronizando datos...')" class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition">
+                    <i class="fas fa-sync-alt"></i> Sincronizar
+                </button>
+                <button onclick="openModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-green-700 transition">
+                    <i class="fas fa-plus"></i> Añadir Animal
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm card-hover">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-100 text-blue-600 rounded-lg"><i class="fas fa-paw fa-lg"></i></div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Total Animales</p>
+                        <h3 class="text-2xl font-bold">142</h3>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 font-semibold"><i class="fas fa-arrow-up"></i> +5 este mes</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm card-hover">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-green-100 text-green-600 rounded-lg"><i class="fas fa-fill-drip fa-lg"></i></div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Prod. Leche Hoy</p>
+                        <h3 class="text-2xl font-bold">1,240 L</h3>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-red-600 font-semibold"><i class="fas fa-arrow-down"></i> -2% vs ayer</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm card-hover">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-yellow-100 text-yellow-600 rounded-lg"><i class="fas fa-heartbeat fa-lg"></i></div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Alertas Salud</p>
+                        <h3 class="text-2xl font-bold text-yellow-600">3</h3>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-slate-400">Revisión veterinaria pendiente</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm card-hover">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg"><i class="fas fa-calendar-check fa-lg"></i></div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Tareas Hoy</p>
+                        <h3 class="text-2xl font-bold">12</h3>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-green-600 font-semibold">8 completadas</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Listado de Animales -->
+            <div class="lg:col-span-2 space-y-6">
+                <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                        <h2 class="font-bold text-slate-700">Inventario Reciente</h2>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Buscar ID..." class="px-3 py-1 text-sm border rounded-md outline-none focus:ring-2 ring-green-500">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3">ID / Arete</th>
+                                    <th class="px-6 py-3">Especie</th>
+                                    <th class="px-6 py-3">Estado Salud</th>
+                                    <th class="px-6 py-3">Últ. Parto</th>
+                                    <th class="px-6 py-3">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">B-102</td>
+                                    <td class="px-6 py-4">Bovino (Holstein)</td>
+                                    <td class="px-6 py-4"><span class="status-pill status-healthy">Saludable</span></td>
+                                    <td class="px-6 py-4 text-slate-500">12/05/2023</td>
+                                    <td class="px-6 py-4"><button class="text-blue-600 hover:underline">Ver ficha</button></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">B-085</td>
+                                    <td class="px-6 py-4">Bovino (Jersey)</td>
+                                    <td class="px-6 py-4"><span class="status-pill status-checkup">Observación</span></td>
+                                    <td class="px-6 py-4 text-slate-500">N/A</td>
+                                    <td class="px-6 py-4"><button class="text-blue-600 hover:underline">Ver ficha</button></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">B-114</td>
+                                    <td class="px-6 py-4">Bovino (Angus)</td>
+                                    <td class="px-6 py-4"><span class="status-pill status-sick">Tratamiento</span></td>
+                                    <td class="px-6 py-4 text-slate-500">03/02/2024</td>
+                                    <td class="px-6 py-4"><button class="text-blue-600 hover:underline">Ver ficha</button></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">B-122</td>
+                                    <td class="px-6 py-4">Bovino (Holstein)</td>
+                                    <td class="px-6 py-4"><span class="status-pill status-healthy">Saludable</span></td>
+                                    <td class="px-6 py-4 text-slate-500">20/01/2024</td>
+                                    <td class="px-6 py-4"><button class="text-blue-600 hover:underline">Ver ficha</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                        <button class="text-sm font-semibold text-green-700 hover:text-green-800">Ver todos los animales →</button>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-green-600"></i> Producción Semanal
+                        </h3>
+                        <div class="h-48 flex items-end justify-between gap-2">
+                            <!-- Mock Chart Bars -->
+                            <div class="flex-1 bg-green-200 hover:bg-green-400 transition h-32 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">120L</span>
+                            </div>
+                            <div class="flex-1 bg-green-300 hover:bg-green-400 transition h-40 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">145L</span>
+                            </div>
+                            <div class="flex-1 bg-green-200 hover:bg-green-400 transition h-28 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">110L</span>
+                            </div>
+                            <div class="flex-1 bg-green-500 h-44 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">160L</span>
+                            </div>
+                            <div class="flex-1 bg-green-200 hover:bg-green-400 transition h-36 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">130L</span>
+                            </div>
+                            <div class="flex-1 bg-green-300 hover:bg-green-400 transition h-32 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">120L</span>
+                            </div>
+                            <div class="flex-1 bg-green-100 hover:bg-green-400 transition h-20 rounded-t-md relative group">
+                                <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100">90L</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-[10px] text-slate-400 font-bold">
+                            <span>LUN</span><span>MAR</span><span>MIE</span><span>JUE</span><span>VIE</span><span>SAB</span><span>DOM</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-microscope text-blue-600"></i> Próximas Vacunaciones
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold">Fiebre Aftosa</p>
+                                    <p class="text-xs text-slate-500">Lote Sector Norte</p>
+                                </div>
+                                <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded">Mañana</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold">Brucelosis</p>
+                                    <p class="text-xs text-slate-500">Terneros < 6 meses</p>
+                                </div>
+                                <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded">En 4 días</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold">Desparasitación</p>
+                                    <p class="text-xs text-slate-500">Hato General</p>
+                                </div>
+                                <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded">12 Mar</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="space-y-8">
+                <!-- Tareas del día -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-list-check text-green-600"></i> Tareas Hoy
+                    </h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition">
+                            <input type="checkbox" class="w-4 h-4 accent-green-600">
+                            <span class="text-sm text-slate-600">Ordeño matutino</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition">
+                            <input type="checkbox" class="w-4 h-4 accent-green-600">
+                            <span class="text-sm text-slate-600">Revisión de cercas Sector B</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition">
+                            <input type="checkbox" class="w-4 h-4 accent-green-600">
+                            <span class="text-sm text-slate-600">Suplemento mineral lote 3</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition">
+                            <input type="checkbox" class="w-4 h-4 accent-green-600">
+                            <span class="text-sm text-slate-600">Limpieza de bebederos</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Notificaciones de Sistema -->
+                <div class="bg-green-50 p-6 rounded-xl border border-green-100 shadow-sm">
+                    <h3 class="font-bold text-green-900 mb-2">Estado del Tiempo</h3>
+                    <a href="https://www.aemet.es/es/eltiempo/prediccion/municipios">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-cloud-sun-rain text-3xl text-green-600"></i>
+                        <div>
+                            <p class="text-xl font-bold">24°C</p>
+                            <p class="text-xs text-green-700 font-medium">Lluvia ligera prevista (3:00 PM)</p>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-xs text-green-800 leading-relaxed italic">
+                        * Consejo: Asegure el forraje seco antes de la tarde.
+                    </p>
+                </div>
+
+                <!-- Mapa Rápido -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100">
+                        <h3 class="font-bold text-sm">Distribución por Potrero</h3>
+                    </div>
+                    <div class="h-40 bg-slate-200 relative flex items-center justify-center">
+                        <i class="fas fa-map-marked-alt text-slate-400 text-4xl"></i>
+                        <span class="absolute top-4 left-4 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded shadow">Potrero A: 45</span>
+                        <span class="absolute bottom-8 right-6 bg-yellow-500 text-white text-[10px] px-2 py-0.5 rounded shadow">Potrero B: 32</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Modal Mockup -->
+    <div id="modal" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Añadir Nuevo Animal</h2>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <form class="space-y-4" onsubmit="event.preventDefault(); showToast('Animal guardado con éxito'); closeModal();">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Identificación (Arete)</label>
+                        <input type="text" placeholder="Eje: B-250" class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-green-500 outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Especie</label>
+                            <select class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-green-500 outline-none bg-white">
+                                <option>Bovino</option>
+                                <option>Porcino</option>
+                                <option>Ovino</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+                            <select class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-green-500 outline-none bg-white">
+                                <option>Hembra</option>
+                                <option>Macho</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Raza</label>
+                        <input type="text" placeholder="Eje: Holstein, Brahman..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-green-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-lg mt-4">
+                        Registrar Animal
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 right-8 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[100]">
+        <div class="bg-slate-800 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">
+            <i class="fas fa-check-circle text-green-400"></i>
+            <span id="toast-text">Operación realizada</span>
+        </div>
+    </div>
+
+    <footer class="mt-12 py-8 bg-slate-100 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex justify-center gap-6 mb-4">
+                <i class="fas fa-cow text-slate-300 text-2xl"></i>
+                <i class="fas fa-seedling text-slate-300 text-2xl"></i>
+                <i class="fas fa-tractor text-slate-300 text-2xl"></i>
+            </div>
+            <p class="text-sm text-slate-500">© 2024 Ganadería Pro Systems. Gestión inteligente para el campo.</p>
+        </div>
+    </footer>
+
+    <script>
+        function openModal() {
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            text.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
