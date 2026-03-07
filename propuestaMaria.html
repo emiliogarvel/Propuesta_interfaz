@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaderíaPro - Gestión Pastel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --pastel-bg: #fdfaf6;
+            --pastel-sidebar: #4a5d4e; /* Verde bosque suave */
+            --pastel-accent: #a8d5ba; /* Menta */
+            --pastel-secondary: #f3d1bb; /* Melocotón */
+            --pastel-info: #d1dcf3; /* Azul pastel */
+            --pastel-danger: #f3cfcf; /* Rosa pastel */
+            --text-main: #3d443f;
+        }
+
+        body {
+            background-color: var(--pastel-bg);
+            color: var(--text-main);
+            font-family: 'Quicksand', 'Segoe UI', sans-serif;
+        }
+
+        .sidebar { background-color: var(--pastel-sidebar); }
+        .card { background: white; border-radius: 20px; border: 1px solid #f0ebe3; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02); }
+        
+        .btn-primary { background-color: #7c9473; color: white; border-radius: 12px; transition: all 0.3s; cursor: pointer; border: none; }
+        .btn-primary:hover { background-color: #60745a; transform: translateY(-2px); }
+
+        .nav-item { cursor: pointer; transition: 0.3s; color: rgba(255,255,255,0.8); }
+        .nav-item:hover { background-color: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background-color: #7c9473; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        .view-section { display: none; animation: fadeIn 0.4s ease-out; }
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #modal-overlay {
+            background-color: rgba(74, 93, 78, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #modal-overlay.active { display: flex; }
+
+        .weather-gradient {
+            background: linear-gradient(135deg, #d1dcf3 0%, #a8d5ba 100%);
+            color: #3d443f;
+        }
+
+        .drop-zone {
+            border: 2px dashed #d1dcf3;
+            transition: all 0.3s;
+        }
+        .drop-zone:hover {
+            background-color: #f0f4fd;
+            border-color: #7c9473;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 text-white flex-shrink-0 hidden md:flex flex-col">
+        <div class="p-8 text-2xl font-bold border-b border-white/10 flex items-center gap-2">
+            <i class="fas fa-leaf"></i> GanaderíaPro
+        </div>
+        <nav class="flex-1 p-4 space-y-3 mt-4">
+            <div onclick="showSection('panel')" id="btn-panel" class="nav-item active p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-th-large"></i> Panel Control
+            </div>
+            <div onclick="showSection('inventario')" id="btn-inventario" class="nav-item p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-horse"></i> Inventario
+            </div>
+            <div onclick="showSection('docs')" id="btn-docs" class="nav-item p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-file-medical"></i> Documentación
+            </div>
+            <div onclick="showSection('nacimientos')" id="btn-nacimientos" class="nav-item p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-baby"></i> Nacimientos
+            </div>
+            <div onclick="showSection('bajas')" id="btn-bajas" class="nav-item p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-skull"></i> Bajas
+            </div>
+            <div onclick="showSection('clima')" id="btn-clima" class="nav-item p-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-cloud-sun"></i> Clima
+            </div>
+        </nav>
+        <div class="p-6 text-center text-xs opacity-50">v2.6.0 Pastel Edition</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+        
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 id="section-title" class="text-3xl font-bold text-gray-800">Panel de Control</h1>
+                <p class="text-gray-400 text-sm mt-1">Hola de nuevo, Juan. Aquí está el resumen de hoy.</p>
+            </div>
+            <div class="bg-white p-2 rounded-2xl shadow-sm flex items-center gap-3 pr-4">
+                <div class="w-10 h-10 rounded-xl bg-[#f3d1bb] flex items-center justify-center text-[#7c6354]">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="font-bold text-gray-700">Juan Ganadero</span>
+            </div>
+        </header>
+
+        <!-- SECCIÓN: PANEL -->
+        <div id="section-panel" class="view-section active">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card p-6 flex items-center gap-4">
+                    <div class="p-4 bg-[#f3d1bb] rounded-2xl text-[#a37c63]"><i class="fas fa-cow text-2xl"></i></div>
+                    <div><p class="text-gray-400 text-xs font-bold uppercase">Total Cabezas</p><p id="count-total" class="text-2xl font-bold">428</p></div>
+                </div>
+                <div class="card p-6 flex items-center gap-4">
+                    <div class="p-4 bg-[#d1f3d8] rounded-2xl text-[#5e8b6b]"><i class="fas fa-baby text-2xl"></i></div>
+                    <div><p class="text-gray-400 text-xs font-bold uppercase">Nacimientos</p><p class="text-2xl font-bold">12</p></div>
+                </div>
+                <div class="card p-6 flex items-center gap-4 weather-gradient">
+                    <div class="flex-1">
+                        <p class="text-xs font-bold uppercase opacity-70">Temperatura</p>
+                        <p id="dash-temp" class="text-2xl font-bold">--°C</p>
+                    </div>
+                    <i class="fas fa-sun text-3xl opacity-50"></i>
+                </div>
+                <div class="card p-6 flex items-center gap-4">
+                    <div class="p-4 bg-[#d1dcf3] rounded-2xl text-[#637da3]"><i class="fas fa-file-medical text-2xl"></i></div>
+                    <div><p class="text-gray-400 text-xs font-bold uppercase">Alertas Salud</p><p class="text-2xl font-bold">2</p></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card p-8">
+                    <h3 class="font-bold text-xl mb-6">Actividad Reciente</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-green-400"></div>
+                            <div><p class="font-bold text-sm">Nuevo nacimiento registrado</p><p class="text-xs text-gray-400">Hace 2 horas • Ternero ES0922</p></div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-blue-400"></div>
+                            <div><p class="font-bold text-sm">Control veterinario completado</p><p class="text-xs text-gray-400">Ayer • Lote Vacas Lecheras</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-8 bg-[#fdf5f0] border-none flex flex-col items-center justify-center text-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1998/1998610.png" class="w-20 mb-4 opacity-80" alt="vaca">
+                    <h3 class="font-bold text-lg">¿Deseas añadir un animal?</h3>
+                    <p class="text-sm text-gray-500 mb-6">Registra rápidamente nuevas incorporaciones a la finca.</p>
+                    <button onclick="showSection('inventario')" class="btn-primary px-8 py-3 font-bold text-sm">Ir al Inventario</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: INVENTARIO -->
+        <div id="section-inventario" class="view-section">
+            <div class="card overflow-hidden">
+                <div class="p-8 border-b border-gray-50 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Base de Datos Ganadera</h2>
+                    <button onclick="openModal()" class="btn-primary px-6 py-3 font-bold text-sm flex items-center gap-2 shadow-lg shadow-[#7c947344]">
+                        <i class="fas fa-plus"></i> Añadir Animal
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-6">ID / Crotal</th>
+                                <th class="p-6">Especie</th>
+                                <th class="p-6">Estado</th>
+                                <th class="p-6">Últ. Control</th>
+                                <th class="p-6">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-gray-50">
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="p-6 font-bold">ES0928374</td>
+                                <td class="p-6 text-gray-500">Bovino (Frisona)</td>
+                                <td class="p-6"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Saludable</span></td>
+                                <td class="p-6 text-gray-400">12 Oct 2023</td>
+                                <td class="p-6"><button class="text-[#7c9473] font-bold hover:underline">Ficha</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: DOCUMENTACIÓN -->
+        <div id="section-docs" class="view-section">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Subida de archivos -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="card p-8">
+                        <h3 class="font-bold text-lg mb-4 text-[#4a5d4e]">Subir Documentos</h3>
+                        <p class="text-xs text-gray-400 mb-6">Sube informes veterinarios, guías de transporte o certificados.</p>
+                        
+                        <div class="drop-zone p-10 rounded-3xl text-center cursor-pointer relative" onclick="document.getElementById('file-upload').click()">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-[#d1dcf3] mb-3"></i>
+                            <p class="text-sm font-bold text-gray-500">Arrastra archivos aquí</p>
+                            <p class="text-xs text-gray-300 mt-1">o haz clic para buscar</p>
+                            <input type="file" id="file-upload" class="hidden" multiple onchange="handleFileUpload(event)">
+                        </div>
+
+                        <div id="upload-progress" class="mt-6 hidden">
+                            <div class="flex justify-between text-xs font-bold mb-2">
+                                <span id="progress-filename" class="truncate max-w-[150px]">Documento...</span>
+                                <span id="progress-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                <div id="progress-bar" class="bg-[#a8d5ba] h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de archivos -->
+                <div class="lg:col-span-2">
+                    <div class="card p-8 h-full">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="font-bold text-xl">Mis Archivos</h3>
+                            <div class="flex gap-2">
+                                <span class="px-3 py-1 bg-gray-50 text-gray-400 rounded-lg text-xs font-bold">PDF</span>
+                                <span class="px-3 py-1 bg-gray-50 text-gray-400 rounded-lg text-xs font-bold">JPG</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4" id="docs-list">
+                            <div class="p-4 border border-gray-50 rounded-2xl flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm">Guia_Transporte_LoteA.pdf</p>
+                                        <p class="text-xs text-gray-400">Hace 2 días • 1.2 MB</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-gray-300 hover:text-blue-400 p-2"><i class="fas fa-eye"></i></button>
+                                    <button class="text-gray-300 hover:text-gray-500 p-2"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="p-4 border border-gray-50 rounded-2xl flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-blue-50 text-blue-400 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-file-medical"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm">Certificado_Saneamiento.pdf</p>
+                                        <p class="text-xs text-gray-400">10 Nov 2023 • 0.8 MB</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-gray-300 hover:text-blue-400 p-2"><i class="fas fa-eye"></i></button>
+                                    <button class="text-gray-300 hover:text-gray-500 p-2"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: NACIMIENTOS -->
+        <div id="section-nacimientos" class="view-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card p-8 border-l-8 border-[#d1f3d8]">
+                    <h3 class="font-bold text-xl mb-4 flex items-center gap-2"><i class="fas fa-baby text-green-400"></i> Partos Recientes</h3>
+                    <div class="space-y-4" id="nacimientos-list">
+                        <div class="p-4 bg-gray-50 rounded-2xl flex justify-between items-center">
+                            <div><p class="font-bold text-sm">ES01122 - Macho</p><p class="text-xs text-gray-400">Madre: ES0911 • Hace 2 días</p></div>
+                            <span class="text-xs font-bold text-green-600">Sano</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-8 flex flex-col justify-center items-center text-center bg-[#fdfaf6]">
+                    <i class="fas fa-calendar-check text-4xl text-gray-300 mb-4"></i>
+                    <h4 class="font-bold">Próximos Partos</h4>
+                    <p class="text-sm text-gray-400">3 Vacas en periodo de gestación avanzada.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: BAJAS -->
+        <div id="section-bajas" class="view-section">
+            <div class="card p-8">
+                <h2 class="text-xl font-bold mb-6">Registro Histórico de Bajas</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 border rounded-2xl border-gray-100 hover:border-red-200 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-red-50 text-red-400 rounded-xl flex items-center justify-center"><i class="fas fa-skull"></i></div>
+                            <div><p class="font-bold">ES08123 (Muerte Natural)</p><p class="text-xs text-gray-400">Fecha: 10 Nov 2023 • Edad: 8 años</p></div>
+                        </div>
+                        <button class="text-gray-300 hover:text-red-500"><i class="fas fa-file-download"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: CLIMA -->
+        <div id="section-clima" class="view-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card p-10 weather-gradient text-center">
+                    <h2 class="font-bold text-2xl mb-2">Estado del Tiempo</h2>
+                    <i id="clima-icon" class="fas fa-sun text-7xl my-6"></i>
+                    <p id="clima-temp" class="text-6xl font-black">--°C</p>
+                    <p id="clima-desc" class="mt-4 font-bold uppercase tracking-widest opacity-60">Sincronizando...</p>
+                </div>
+                <div class="card p-8 space-y-6">
+                    <h3 class="font-bold border-b pb-4">Detalles Técnicos</h3>
+                    <div class="flex justify-between"><span>Viento</span><span id="clima-viento" class="font-bold">-- km/h</span></div>
+                    <div class="flex justify-between"><span>Humedad</span><span id="clima-hum" class="font-bold">--%</span></div>
+                    <div class="p-4 bg-blue-50 rounded-2xl text-blue-700 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i> Consejo: Las condiciones son óptimas para el pastoreo en la zona norte.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL -->
+    <div id="modal-overlay">
+        <div class="card w-full max-w-md mx-4 overflow-hidden shadow-2xl">
+            <div class="p-6 bg-[#7c9473] text-white flex justify-between items-center">
+                <h2 class="text-xl font-bold">Nuevo Animal</h2>
+                <button onclick="closeModal()" class="hover:rotate-90 transition-transform"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="animal-form" class="p-8 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Identificador Crotal</label>
+                    <input required name="crotal" type="text" placeholder="Ej: ES092837" class="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#7c9473]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Especie / Raza</label>
+                    <select name="especie" class="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none">
+                        <option>Bovino (Frisona)</option>
+                        <option>Bovino (Angus)</option>
+                        <option>Ovino</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Estado Salud</label>
+                    <select name="estado" class="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none">
+                        <option value="Saludable">Saludable</option>
+                        <option value="Gestación">Gestación</option>
+                        <option value="Tratamiento">Tratamiento</option>
+                    </select>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 p-4 bg-gray-100 text-gray-500 rounded-2xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 p-4 btn-primary font-bold shadow-lg shadow-[#7c947344]">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- NAVEGACIÓN ---
+        function showSection(id) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('section-' + id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+            
+            const titles = { 'panel': 'Panel de Control', 'inventario': 'Inventario Ganadero', 'nacimientos': 'Nacimientos', 'bajas': 'Registro de Bajas', 'clima': 'Estación Clima', 'docs': 'Documentación Técnica' };
+            document.getElementById('section-title').innerText = titles[id];
+        }
+
+        // --- MODAL ---
+        const modal = document.getElementById('modal-overlay');
+        const form = document.getElementById('animal-form');
+
+        function openModal() { modal.classList.add('active'); }
+        function closeModal() { modal.classList.remove('active'); form.reset(); }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const table = document.getElementById('inventory-table-body');
+            
+            const row = document.createElement('tr');
+            row.className = "hover:bg-gray-50/50 transition-colors animate-fadeIn";
+            
+            let color = "bg-green-100 text-green-700";
+            if(data.get('estado') === 'Gestación') color = "bg-orange-100 text-orange-700";
+            if(data.get('estado') === 'Tratamiento') color = "bg-red-100 text-red-700";
+
+            row.innerHTML = `
+                <td class="p-6 font-bold">${data.get('crotal')}</td>
+                <td class="p-6 text-gray-500">${data.get('especie')}</td>
+                <td class="p-6"><span class="px-3 py-1 ${color} rounded-full text-xs font-bold">${data.get('estado')}</span></td>
+                <td class="p-6 text-gray-400">Hoy</td>
+                <td class="p-6"><button class="text-[#7c9473] font-bold hover:underline">Ficha</button></td>
+            `;
+            table.prepend(row);
+            
+            const counter = document.getElementById('count-total');
+            counter.innerText = parseInt(counter.innerText) + 1;
+            
+            closeModal();
+            showToast("Animal registrado correctamente");
+        });
+
+        // --- DOCUMENTACIÓN (SUBIDA DE ARCHIVOS) ---
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const progressArea = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFilename = document.getElementById('progress-filename');
+            const progressPercent = document.getElementById('progress-percent');
+
+            // Mostrar UI progreso
+            progressArea.classList.remove('hidden');
+            progressFilename.innerText = file.name;
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    setTimeout(() => {
+                        addDocToList(file.name, (file.size / (1024 * 1024)).toFixed(2));
+                        progressArea.classList.add('hidden');
+                        progressBar.style.width = '0%';
+                        showToast("Documento subido con éxito");
+                    }, 500);
+                }
+                progressBar.style.width = progress + '%';
+                progressPercent.innerText = Math.round(progress) + '%';
+            }, 200);
+        }
+
+        function addDocToList(name, size) {
+            const list = document.getElementById('docs-list');
+            const doc = document.createElement('div');
+            doc.className = "p-4 border border-gray-50 rounded-2xl flex items-center justify-between hover:bg-gray-50/50 transition-colors animate-fadeIn";
+            
+            const isPdf = name.toLowerCase().endsWith('.pdf');
+            const iconClass = isPdf ? 'fa-file-pdf text-red-400' : 'fa-file-image text-blue-400';
+            const bgClass = isPdf ? 'bg-red-50' : 'bg-blue-50';
+
+            doc.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 ${bgClass} rounded-xl flex items-center justify-center">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">${name}</p>
+                        <p class="text-xs text-gray-400">Recién subido • ${size} MB</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="text-gray-300 hover:text-blue-400 p-2"><i class="fas fa-eye"></i></button>
+                    <button class="text-gray-300 hover:text-gray-500 p-2"><i class="fas fa-download"></i></button>
+                </div>
+            `;
+            list.prepend(doc);
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-10 right-10 bg-[#4a5d4e] text-white px-8 py-4 rounded-2xl shadow-2xl z-[2000] animate-fadeIn";
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 500);
+            }, 3000);
+        }
+
+        // --- CLIMA ---
+        async function fetchClima() {
+            try {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true`);
+                    const data = await res.json();
+                    const w = data.current_weather;
+                    
+                    document.getElementById('dash-temp').innerText = `${w.temperature}°C`;
+                    document.getElementById('clima-temp').innerText = `${w.temperature}°C`;
+                    document.getElementById('clima-viento').innerText = `${w.windspeed} km/h`;
+                    document.getElementById('clima-hum').innerText = `58%`;
+                    document.getElementById('clima-desc').innerText = w.weathercode <= 2 ? "Cielos Despejados" : "Nubosidad Variable";
+                });
+            } catch(e) { 
+                console.error("Error clima");
+                document.getElementById('dash-temp').innerText = "18°C"; // Fallback visual
+            }
+        }
+
+        window.onload = fetchClima;
+    </script>
+</body>
+</html>
